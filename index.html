@@ -1,0 +1,827 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<link rel="apple-touch-icon" href="https://augustineiacopelli.github.io/appaday/icons/173.png">
+<meta name="apple-mobile-web-app-title" content="Key Ring">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black">
+<link rel="manifest" href="https://augustineiacopelli.github.io/appaday/manifests/173.webmanifest">
+<script src="https://augustineiacopelli.github.io/appaday/save.js" defer></script>
+<script src="https://augustineiacopelli.github.io/appaday/models.js"></script>
+<script src="https://augustineiacopelli.github.io/appaday/keys.js" data-app="173" data-accent="#289664" defer></script>
+<title>Key Ring Inspector | AppADay 173</title>
+<meta name="description" content="Compare the Claude API keys in your encrypted AppADay backup file with the keys saved in this browser, fix gaps, test a key, and download a fresh encrypted backup.">
+<style>
+:root{
+  --bg:#0B1410;
+  --surface:#13211A;
+  --surface2:#1A2B22;
+  --line:#26402F;
+  --text:#E7F3EC;
+  --muted:#9FB8AA;
+  --accent:#289664;
+  --btn:#1F7A50;
+  --btn-hi:#278F5F;
+  --accent-hi:#53C994;
+  --info:#7DB2EE;
+  --warn:#E8B160;
+  --bad:#F08A6C;
+  --radius:14px;
+  --sans:system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100dvh;background:radial-gradient(120% 55% at 50% -10%,rgba(40,150,100,.30),transparent 60%),var(--bg);color:var(--text);font-family:var(--sans);font-size:1rem;line-height:1.5;display:flex;flex-direction:column;overflow-x:hidden}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:3px solid var(--accent-hi);outline-offset:2px}
+a{color:var(--accent-hi)}
+.wrap{width:100%;max-width:780px;margin:0 auto;padding:0 16px}
+[hidden]{display:none!important}
+
+.hdr{display:flex;align-items:center;gap:12px;padding:14px 0 10px}
+.num{flex:none;font-family:var(--mono);font-weight:700;font-size:.85rem;background:var(--btn);color:#fff;border-radius:10px;padding:8px 10px;letter-spacing:.04em}
+.ttl{flex:1;min-width:0}
+.ttl h1{margin:0;font-weight:750;font-size:clamp(1.2rem,4.8vw,1.65rem);line-height:1.15;letter-spacing:-.01em}
+.ttl a{font-size:.85rem;color:var(--muted);text-decoration:none}
+.ttl a:hover{color:var(--accent-hi);text-decoration:underline}
+
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:16px;margin:0 0 14px}
+.card h2{margin:0 0 6px;font-size:1.05rem;font-weight:700}
+.lead{margin:6px 0 14px;color:var(--text)}
+.privacy{border-color:#2F5C45;background:linear-gradient(180deg,rgba(40,150,100,.14),rgba(40,150,100,.05))}
+.privacy p{margin:0 0 8px}
+.privacy p:last-child{margin:0}
+.small{font-size:.88rem;color:var(--muted)}
+label.lbl{display:block;font-weight:600;font-size:.92rem;margin:12px 0 6px}
+.inp{width:100%;min-height:46px;border-radius:10px;border:1px solid var(--line);background:var(--bg);padding:10px 12px;font-size:1rem}
+.inp:focus{border-color:var(--accent-hi)}
+input[type=file].inp{padding:8px;color:var(--muted)}
+input[type=file]::file-selector-button{min-height:36px;border:1px solid var(--line);background:var(--surface2);color:var(--text);border-radius:8px;padding:0 12px;margin-right:10px;font:inherit}
+.btn{min-height:44px;padding:0 16px;border-radius:10px;border:1px solid var(--line);background:var(--surface2);font-weight:600;font-size:.95rem;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn:hover{border-color:var(--accent)}
+.btn.primary{background:var(--btn);border-color:var(--btn);color:#fff}
+.btn.primary:hover{background:var(--btn-hi)}
+.btn.danger{color:var(--bad)}
+.btn.confirm{background:rgba(240,138,108,.18);border-color:var(--bad);color:var(--bad)}
+.btn.sm{min-height:44px;padding:0 12px;font-size:.88rem}
+.btn[disabled]{opacity:.55;cursor:default}
+.row-btns{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.status{margin:10px 0 0;min-height:1.3em;font-size:.92rem}
+.status.err{color:var(--bad)}
+.status.ok{color:var(--accent-hi)}
+.linkish{background:none;border:0;padding:10px 0;min-height:44px;color:var(--accent-hi);text-decoration:underline;font-size:.92rem}
+
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}
+.fchip{min-height:44px;padding:0 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);font-size:.85rem;font-weight:600}
+.fchip[aria-pressed=true]{background:var(--btn);border-color:var(--btn);color:#fff}
+.dirty{display:inline-block;font-size:.82rem;font-weight:700;color:var(--warn);border:1px solid rgba(232,177,96,.5);background:rgba(232,177,96,.12);border-radius:999px;padding:4px 10px}
+
+.rows{display:flex;flex-direction:column;gap:8px;margin:0 0 14px}
+.row{background:var(--surface);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+.row[open]{border-color:#356B50}
+.row summary{list-style:none;min-height:56px;padding:10px 12px;display:grid;grid-template-columns:auto 1fr auto;column-gap:10px;row-gap:2px;align-items:center;cursor:pointer}
+.row summary::-webkit-details-marker{display:none}
+.rn{font-family:var(--mono);font-weight:700;font-size:.8rem;background:var(--surface2);border:1px solid var(--line);border-radius:8px;padding:4px 7px;grid-row:1}
+.rname{font-weight:650;min-width:0;overflow-wrap:anywhere}
+.rsub{grid-column:1 / -1;font-size:.82rem;color:var(--muted);font-family:var(--mono);display:flex;flex-wrap:wrap;gap:4px 14px;overflow-wrap:anywhere}
+.rsub .note{font-family:var(--sans)}
+.chip{font-size:.74rem;font-weight:750;letter-spacing:.02em;border-radius:999px;padding:4px 9px;border:1px solid transparent;white-space:nowrap}
+.c-match{color:var(--accent-hi);background:rgba(83,201,148,.13);border-color:rgba(83,201,148,.4)}
+.c-mismatch{color:var(--bad);background:rgba(240,138,108,.13);border-color:rgba(240,138,108,.45)}
+.c-file{color:var(--info);background:rgba(125,178,238,.13);border-color:rgba(125,178,238,.4)}
+.c-browser{color:var(--warn);background:rgba(232,177,96,.13);border-color:rgba(232,177,96,.45)}
+.c-missing{color:var(--muted);background:rgba(159,184,170,.1);border-color:rgba(159,184,170,.35)}
+.rbody{padding:4px 12px 14px;border-top:1px solid var(--line)}
+.vals{display:grid;gap:10px;margin:12px 0 4px}
+.val{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:8px 10px;display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center}
+.val b{font-size:.78rem;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.06em;grid-column:1 / -1}
+.vtxt{font-family:var(--mono);font-size:.9rem;overflow-wrap:anywhere;word-break:break-all;min-width:0}
+.vtxt.none{color:var(--muted);font-family:var(--sans)}
+.acts{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.editor{margin-top:12px;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px}
+.editor fieldset{border:0;margin:10px 0 0;padding:0;display:flex;flex-wrap:wrap;gap:6px 16px}
+.editor legend{font-size:.85rem;font-weight:600;padding:0;margin-bottom:4px}
+.editor .rad{display:inline-flex;align-items:center;gap:8px;min-height:44px}
+.editor .rad input{width:20px;height:20px;accent-color:var(--accent)}
+.tests{margin-top:12px;display:grid;gap:6px}
+.tline{font-size:.88rem;display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
+.tline .chip{font-size:.72rem}
+.t-ok{color:var(--accent-hi)}.t-bad{color:var(--bad)}.t-lim{color:var(--warn)}.t-off{color:var(--muted)}.t-pend{color:var(--info)}
+
+.defrow{margin-bottom:14px}
+.sect{margin:18px 0 8px;font-size:.78rem;font-weight:750;text-transform:uppercase;letter-spacing:.1em;color:var(--muted)}
+.empty{padding:22px 12px;text-align:center;color:var(--muted)}
+footer{margin-top:auto;padding:18px 0 calc(22px + env(safe-area-inset-bottom));color:var(--muted);font-size:.85rem;border-top:1px solid var(--line)}
+.spin{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.35);border-top-color:#fff;animation:sp .8s linear infinite;display:none}
+.busy .spin{display:inline-block}
+@keyframes sp{to{transform:rotate(360deg)}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="hdr">
+    <div class="num" aria-hidden="true">173</div>
+    <div class="ttl">
+      <h1>Key Ring Inspector</h1>
+      <a href="https://augustineiacopelli.github.io/appaday/">AppADay portfolio</a>
+    </div>
+  </header>
+</div>
+
+<main class="wrap">
+  <section class="card privacy" aria-label="Privacy statement">
+    <p><strong>No key leaves this device</strong> except an optional Test on a row, which sends one token request directly to api.anthropic.com. Loading this page only fetches the shared AppADay portal scripts and config.json, which carry no keys.</p>
+    <p class="small" id="browserSummary" aria-live="polite"></p>
+  </section>
+
+  <section class="card" id="unlockCard" aria-labelledby="unlockH">
+    <h2 id="unlockH">Open your backup file</h2>
+    <p class="lead small">Choose appaday-keys.json, type its passphrase, and every AI app is compared against the keys saved in this browser.</p>
+    <label class="lbl" for="bf">Backup file</label>
+    <input class="inp" type="file" id="bf" accept="application/json,.json">
+    <label class="lbl" for="pp">Passphrase</label>
+    <input class="inp" type="password" id="pp" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="The passphrase you made the file with">
+    <div class="row-btns">
+      <button class="btn primary" id="unlockBtn" type="button"><span class="spin" aria-hidden="true"></span><span id="unlockLabel">Open and compare</span></button>
+    </div>
+    <p class="status" id="unlockStatus" role="status" aria-live="polite"></p>
+    <button class="linkish" id="freshBtn" type="button">No backup file yet? Start from this browser's keys</button>
+  </section>
+
+  <div id="workspace" hidden>
+    <section class="card" aria-labelledby="sumH">
+      <div class="bar" style="justify-content:space-between">
+        <h2 id="sumH" style="margin:0">Comparison</h2>
+        <span class="dirty" id="dirtyTag" hidden>Unsaved file changes</span>
+      </div>
+      <p class="small" style="margin:6px 0 12px">Edits to the file copy stay in memory until you download the updated backup. Edits to the browser copy are written to this browser right away.</p>
+      <div class="chips" id="chips" role="group" aria-label="Filter apps by status"></div>
+      <div class="bar">
+        <button class="btn sm" id="bulkToBrowser" type="button"></button>
+        <button class="btn sm" id="bulkToFile" type="button"></button>
+      </div>
+      <p class="status" id="live" role="status" aria-live="polite"></p>
+    </section>
+
+    <div class="sect">Default key</div>
+    <div class="defrow" id="defRow"></div>
+
+    <div class="sect" id="appsHead">AI apps</div>
+    <div class="rows" id="rows"></div>
+
+    <section class="card" aria-labelledby="dlH">
+      <h2 id="dlH">Download updated backup</h2>
+      <p class="small" style="margin:0 0 6px">The file is re-encrypted with the passphrase you opened it with. To change it, type a new one below (at least 12 characters).</p>
+      <label class="lbl" for="np">New passphrase (optional)</label>
+      <input class="inp" type="password" id="np" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <div id="npConfirmWrap" hidden>
+        <label class="lbl" for="np2">Type it again</label>
+        <input class="inp" type="password" id="np2" autocomplete="off" autocapitalize="off" spellcheck="false">
+      </div>
+      <div class="row-btns">
+        <button class="btn primary" id="dlBtn" type="button"><span class="spin" aria-hidden="true"></span><span id="dlLabel">Download updated backup</span></button>
+        <button class="btn" id="lockBtn" type="button">Lock and clear</button>
+      </div>
+      <p class="status" id="dlStatus" role="status" aria-live="polite"></p>
+      <p class="small">After a download, the passphrase and the decrypted keys are cleared from this page. Replace your older appaday-keys.json with the new copy.</p>
+    </section>
+  </div>
+</main>
+
+<footer>
+  <div class="wrap">AppADay 173 &middot; <a href="https://augustineiacopelli.github.io/appaday/">Back to the AppADay portfolio</a></div>
+</footer>
+
+<script>
+(function () {
+  'use strict';
+
+  /* AI app list embedded at build time from keys_inventory.json (names from the portal). */
+  var AI_APPS = [{"n":"004","name":"Tube Sort"},{"n":"005","name":"Dad Joke Generator"},{"n":"017","name":"Session Scribe"},{"n":"019","name":"Tone Translator"},{"n":"022","name":"Haiku Engine"},{"n":"023","name":"Beer Tasting Scorecard"},{"n":"029","name":"Life Advocate"},{"n":"035","name":"Meeting Distiller"},{"n":"040","name":"Kitchen Tamer"},{"n":"045","name":"Water Reminder"},{"n":"054","name":"Examen"},{"n":"061","name":"Language Flashcard Sprint"},{"n":"063","name":"Bleeding Edge"},{"n":"067","name":"Thought Chisel"},{"n":"068","name":"Ten Lessons"},{"n":"072","name":"Fix-It Lens"},{"n":"073","name":"Explain It Three Ways"},{"n":"078","name":"Red Team This"},{"n":"083","name":"Homebrew Label Lab"},{"n":"086","name":"Subject Line Lab"},{"n":"090","name":"Syllabus Skimmer"},{"n":"091","name":"Grade Runway"},{"n":"092","name":"Semester Forecast"},{"n":"093","name":"Scam Text Tormentor"},{"n":"097","name":"Field Marks"},{"n":"099","name":"Social Post Responder"},{"n":"100","name":"Signal Desk"},{"n":"106","name":"Python Discombobulator"},{"n":"110","name":"Album Cover Generator"},{"n":"111","name":"Application Gap Analysis"},{"n":"115","name":"Basket Ledger"},{"n":"119","name":"Room Read"},{"n":"120","name":"Thought Chisel II"},{"n":"123","name":"Two-Minute Rule Task Splitter"},{"n":"124","name":"Reframe"},{"n":"126","name":"Rubric Builder"},{"n":"128","name":"Sermon Note Catcher"},{"n":"130","name":"Locus of Control"},{"n":"131","name":"Cloud Reader"},{"n":"134","name":"Anagram Alchemy"},{"n":"136","name":"Detour"},{"n":"140","name":"Delegation Draft"},{"n":"141","name":"Court of Honor Citation"},{"n":"144","name":"Bulletin Brief"},{"n":"145","name":"Story Seed"},{"n":"146","name":"Saga Forge"},{"n":"147","name":"Art and Audio Forge"},{"n":"148","name":"World Forge"},{"n":"149","name":"Story Forge"},{"n":"153","name":"Social Pulse"},{"n":"155","name":"Forecast Discussion Decoder"},{"n":"158","name":"Gratitude Jar"},{"n":"160","name":"Procedure Scribe"},{"n":"170","name":"Mock Interview Drill"}];
+
+  var ITER = 600000;
+  var K_DEF = 'appaday.key.default';
+  var K_FILE = 'appaday.key.hasFile';
+  var RE_APPKEY = /^appaday\.key\.(\d{3})$/;
+  var API_MESSAGES = 'https://api.anthropic.com/v1/messages';
+  var FILE_NAME = 'appaday-keys.json';
+  var ua = navigator.userAgent || '';
+  var MOBILE = /iPhone|iPad|iPod|Android/i.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+
+  var NAMES = {};
+  AI_APPS.forEach(function (a) { NAMES[a.n] = a.name; });
+
+  var state = {
+    ring: null, pass: null, dirty: false, filter: 'all',
+    open: {}, reveal: {}, results: {}, confirm: null,
+    editing: null, draft: '', target: 'both', showDraft: false, editMsg: '', focusEditor: false,
+    pending: null
+  };
+
+  function $(id) { return document.getElementById(id); }
+  function h(tag, attrs, kids) {
+    var el = document.createElement(tag);
+    if (attrs) Object.keys(attrs).forEach(function (k) {
+      var v = attrs[k];
+      if (v == null || v === false) return;
+      if (k === 'cls') el.className = v;
+      else if (k === 'text') el.textContent = v;
+      else if (k.slice(0, 2) === 'on' && typeof v === 'function') el.addEventListener(k.slice(2), v);
+      else el.setAttribute(k, v === true ? '' : v);
+    });
+    (kids || []).forEach(function (c) {
+      if (c == null || c === false) return;
+      el.appendChild(typeof c === 'string' ? document.createTextNode(c) : c);
+    });
+    return el;
+  }
+
+  /* ---------- storage (exact names and plausibility rule used by keys.js) ---------- */
+  function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, v); return true; } catch (e) { return false; } }
+  function lsDel(k) { try { localStorage.removeItem(k); } catch (e) { /* ignore */ } }
+  function plausible(k) { return typeof k === 'string' && k.length >= 20 && k.length <= 400 && !/\s/.test(k); }
+  function clean(k) { return typeof k === 'string' ? k.trim() : ''; }
+  function storageName(id) { return id === 'default' ? K_DEF : 'appaday.key.' + id; }
+  function browserVal(id) { var v = clean(lsGet(storageName(id))); return plausible(v) ? v : null; }
+  function browserEntries() {
+    var out = { default: browserVal('default'), apps: {} };
+    try {
+      for (var i = 0; i < localStorage.length; i++) {
+        var name = localStorage.key(i), m = name && name.match(RE_APPKEY);
+        if (!m) continue;
+        var v = clean(localStorage.getItem(name));
+        if (plausible(v)) out.apps[m[1]] = v;
+      }
+    } catch (e) { /* ignore */ }
+    return out;
+  }
+  function setBrowser(id, v) { return plausible(v) && lsSet(storageName(id), v); }
+
+  /* ---------- key ring crypto (format from KEYS.md) ---------- */
+  var enc = new TextEncoder(), dec = new TextDecoder();
+  function b64e(u8) {
+    var s = '';
+    for (var i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+  function b64d(str) {
+    var s = atob(str), u8 = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) u8[i] = s.charCodeAt(i);
+    return u8;
+  }
+  function normPass(p) { try { return p.normalize('NFC'); } catch (e) { return p; } }
+  function deriveAes(pass, salt, iter) {
+    return crypto.subtle.importKey('raw', enc.encode(normPass(pass)), 'PBKDF2', false, ['deriveKey']).then(function (base) {
+      return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salt, iterations: iter, hash: 'SHA-256' },
+        base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    });
+  }
+  function fail(code) { var e = new Error(code); e.code = code; return e; }
+  function sealRing(ring, pass) {
+    var salt = crypto.getRandomValues(new Uint8Array(16));
+    var iv = crypto.getRandomValues(new Uint8Array(12));
+    return deriveAes(pass, salt, ITER).then(function (aes) {
+      var plain = { default: ring.default || null, apps: ring.apps || {}, updated: new Date().toISOString() };
+      return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, aes, enc.encode(JSON.stringify(plain)));
+    }).then(function (ct) {
+      return JSON.stringify({ format: 'appaday-keyring', v: 1, kdf: 'PBKDF2-SHA256', iter: ITER, salt: b64e(salt), iv: b64e(iv), ct: b64e(new Uint8Array(ct)) });
+    });
+  }
+  function openRing(text, pass) {
+    var env;
+    try { env = JSON.parse(text); } catch (e) { return Promise.reject(fail('format')); }
+    if (!env || env.format !== 'appaday-keyring' || env.v !== 1 || env.kdf !== 'PBKDF2-SHA256' ||
+        typeof env.iter !== 'number' || env.iter < 100000 || env.iter > 10000000 ||
+        typeof env.salt !== 'string' || typeof env.iv !== 'string' || typeof env.ct !== 'string') return Promise.reject(fail('format'));
+    var salt, iv, ct;
+    try { salt = b64d(env.salt); iv = b64d(env.iv); ct = b64d(env.ct); } catch (e) { return Promise.reject(fail('format')); }
+    return deriveAes(pass, salt, env.iter).then(function (aes) {
+      return crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, aes, ct);
+    }).then(function (plain) {
+      var r;
+      try { r = JSON.parse(dec.decode(plain)); } catch (e) { throw fail('format'); }
+      var out = { default: plausible(r && r.default) ? r.default : null, apps: {} };
+      if (r && r.apps && typeof r.apps === 'object') {
+        Object.keys(r.apps).forEach(function (n) { if (/^\d{3}$/.test(n) && plausible(r.apps[n])) out.apps[n] = r.apps[n]; });
+      }
+      return out;
+    }, function () { throw fail('pass'); });
+  }
+  function readText(file) {
+    return new Promise(function (res, rej) {
+      var fr = new FileReader();
+      fr.onload = function () { res(String(fr.result || '')); };
+      fr.onerror = function () { rej(fail('format')); };
+      fr.readAsText(file);
+    });
+  }
+
+  /* ---------- rows ---------- */
+  function fileVal(id) {
+    if (!state.ring) return null;
+    return id === 'default' ? (state.ring.default || null) : (state.ring.apps[id] || null);
+  }
+  function statusOf(f, b) {
+    if (f && b) return f === b ? 'match' : 'mismatch';
+    if (f) return 'file';
+    if (b) return 'browser';
+    return 'missing';
+  }
+  var STATUS_LABEL = { match: 'Match', mismatch: 'Mismatch', file: 'Only in file', browser: 'Only in browser', missing: 'Missing' };
+  function nameOf(id) { return id === 'default' ? 'Default key' : (NAMES[id] || 'App ' + id + ' (not in the AI list)'); }
+  function mask(k) { return k ? '••••' + k.slice(-4) : 'none'; }
+  function rowIds() {
+    var ids = [], seen = {};
+    AI_APPS.forEach(function (a) { ids.push(a.n); seen[a.n] = 1; });
+    var extra = {};
+    Object.keys(browserEntries().apps).forEach(function (n) { if (!seen[n]) extra[n] = 1; });
+    if (state.ring) Object.keys(state.ring.apps).forEach(function (n) { if (!seen[n]) extra[n] = 1; });
+    Object.keys(extra).sort().forEach(function (n) { ids.push(n); });
+    return ids;
+  }
+  function makeItem(id) {
+    var f = fileVal(id), b = browserVal(id);
+    return { id: id, f: f, b: b, s: statusOf(f, b) };
+  }
+  function defaultCover() {
+    if (browserVal('default')) return 'browser';
+    if (fileVal('default')) return 'file';
+    return 'none';
+  }
+
+  function say(text, kind) {
+    var el = $('live');
+    el.textContent = text || '';
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+  function markDirty() {
+    state.dirty = true; $('dirtyTag').hidden = false;
+    if (state.pending) { state.pending = null; $('dlLabel').textContent = 'Download updated backup'; }
+  }
+  function clearResults(id) { delete state.results[id]; }
+
+  function copyText(text) {
+    if (navigator.clipboard && navigator.clipboard.writeText) return navigator.clipboard.writeText(text);
+    return new Promise(function (res, rej) {
+      var ta = h('textarea', { 'aria-hidden': 'true', readonly: true, style: 'position:fixed;top:-100px;opacity:0' });
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      var ok = false;
+      try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+      document.body.removeChild(ta);
+      ok ? res() : rej(new Error('copy'));
+    });
+  }
+
+  /* two step confirm used for deletes and bulk copies */
+  var confirmTimer = null;
+  function isArmed(token) { return state.confirm === token; }
+  function armOrRun(token, fn) {
+    if (state.confirm === token) { state.confirm = null; clearTimeout(confirmTimer); fn(); return; }
+    state.confirm = token;
+    clearTimeout(confirmTimer);
+    confirmTimer = setTimeout(function () { state.confirm = null; render(); }, 4000);
+    render();
+  }
+
+  /* ---------- actions ---------- */
+  function copyFileToBrowser(id) {
+    var f = fileVal(id);
+    if (!f) return false;
+    if (!setBrowser(id, f)) { say('This browser would not save the key. Storage may be blocked or full.', 'err'); return false; }
+    clearResults(id);
+    return true;
+  }
+  function copyBrowserToFile(id) {
+    var b = browserVal(id);
+    if (!b) return false;
+    if (id === 'default') state.ring.default = b; else state.ring.apps[id] = b;
+    clearResults(id);
+    markDirty();
+    return true;
+  }
+  function deleteFromFile(id) {
+    if (id === 'default') state.ring.default = null; else delete state.ring.apps[id];
+    clearResults(id);
+    markDirty();
+    say('Removed ' + nameOf(id) + ' from the file copy. Download to keep the change.', 'ok');
+    render();
+  }
+  function deleteFromBrowser(id) {
+    lsDel(storageName(id));
+    clearResults(id);
+    say('Removed ' + nameOf(id) + ' from this browser.', 'ok');
+    render();
+  }
+  function startEdit(id) {
+    state.editing = id; state.draft = ''; state.target = 'both'; state.showDraft = false; state.editMsg = '';
+    state.focusEditor = true; state.open[id] = true;
+    render();
+  }
+  function saveEdit(id) {
+    var v = clean(state.draft);
+    if (!plausible(v)) { state.editMsg = 'That does not look like an API key. Keys are 20 to 400 characters with no spaces.'; render(); return; }
+    var t = state.target, where = [];
+    if (t === 'both' || t === 'browser') {
+      if (!setBrowser(id, v)) { state.editMsg = 'This browser would not save the key. Storage may be blocked or full.'; render(); return; }
+      where.push('this browser');
+    }
+    if (t === 'both' || t === 'file') {
+      if (id === 'default') state.ring.default = v; else state.ring.apps[id] = v;
+      markDirty();
+      where.push('the file copy');
+    }
+    clearResults(id);
+    state.editing = null; state.draft = ''; state.editMsg = '';
+    say('Saved ' + nameOf(id) + ' to ' + where.join(' and ') + (t !== 'browser' ? '. Download to keep the file change.' : '.'), 'ok');
+    render();
+  }
+
+  function bulkTargets(dir) {
+    var out = [];
+    ['default'].concat(rowIds()).forEach(function (id) {
+      var it = makeItem(id);
+      if (dir === 'toBrowser' && (it.s === 'file' || it.s === 'mismatch')) out.push(id);
+      if (dir === 'toFile' && (it.s === 'browser' || it.s === 'mismatch')) out.push(id);
+    });
+    return out;
+  }
+  function runBulk(dir) {
+    var ids = bulkTargets(dir), n = 0;
+    ids.forEach(function (id) { if (dir === 'toBrowser' ? copyFileToBrowser(id) : copyBrowserToFile(id)) n++; });
+    say(n ? ('Copied ' + n + (n === 1 ? ' key ' : ' keys ') + (dir === 'toBrowser' ? 'from the file to this browser.' : 'from this browser to the file copy. Download to keep the change.')) : 'Nothing to copy.', n ? 'ok' : '');
+    render();
+  }
+
+  /* ---------- test (the only place a key is sent anywhere) ---------- */
+  function setResult(id, side, r) { (state.results[id] = state.results[id] || {})[side] = r; }
+  function testKey(id, side) {
+    var key = side === 'file' ? fileVal(id) : browserVal(id);
+    if (!key) return;
+    var cur = state.results[id] && state.results[id][side];
+    if (cur && cur.state === 'pending') return;
+    setResult(id, side, { state: 'pending' });
+    render();
+    return (async function () {
+      var model = null;
+      try { model = window.AppModels ? await window.AppModels.get('haiku') : null; } catch (e) { model = null; }
+      if (!model) { setResult(id, side, { state: 'unreachable', text: 'The model list did not load. Check your connection and reload.' }); render(); return; }
+      var ctl = window.AbortController ? new AbortController() : null;
+      var timer = ctl ? setTimeout(function () { ctl.abort(); }, 20000) : null;
+      try {
+        var opts = {
+          method: 'POST',
+          headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true', 'content-type': 'application/json' },
+          body: JSON.stringify({ model: model, max_tokens: 1, messages: [{ role: 'user', content: 'Hi' }] })
+        };
+        if (ctl) opts.signal = ctl.signal;
+        var r = await fetch(API_MESSAGES, opts);
+        clearTimeout(timer);
+        if (r.status === 200) setResult(id, side, { state: 'ok', text: 'Key works (200).' });
+        else if (r.status === 401 || r.status === 403) setResult(id, side, { state: 'bad', text: 'Key rejected (' + r.status + ').' });
+        else if (r.status === 429) setResult(id, side, { state: 'limited', text: 'Rate limited (429). Anthropic recognized the key but asked you to slow down.' });
+        else setResult(id, side, { state: 'other', text: 'Unexpected reply (HTTP ' + r.status + ').' });
+      } catch (e) {
+        clearTimeout(timer);
+        setResult(id, side, { state: 'unreachable', text: 'Could not reach api.anthropic.com.' });
+      }
+      render();
+    })();
+  }
+  var RES_CLASS = { ok: 't-ok', bad: 't-bad', limited: 't-lim', unreachable: 't-off', other: 't-off', pending: 't-pend' };
+  var RES_LABEL = { ok: 'OK', bad: 'Bad', limited: 'Rate limited', unreachable: 'Unreachable', other: 'Other', pending: 'Testing' };
+
+  /* ---------- rendering ---------- */
+  function actionBtn(label, fn, cls, extra) {
+    return h('button', { type: 'button', cls: 'btn sm' + (cls ? ' ' + cls : ''), onclick: fn, 'aria-label': extra || null, text: label });
+  }
+
+  function buildEditor(it) {
+    var wrap = h('div', { cls: 'editor' });
+    var inp = h('input', {
+      type: state.showDraft ? 'text' : 'password', id: 'ev-' + it.id, cls: 'inp', autocomplete: 'off', autocapitalize: 'off',
+      spellcheck: 'false', placeholder: 'sk-ant-...', 'aria-label': 'Key value for ' + nameOf(it.id)
+    });
+    inp.value = state.draft;
+    inp.addEventListener('input', function () { state.draft = inp.value; });
+    inp.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); saveEdit(it.id); } });
+    wrap.appendChild(h('label', { cls: 'lbl', for: 'ev-' + it.id, text: it.f || it.b ? 'Replace ' + nameOf(it.id) : 'Add ' + nameOf(it.id), style: 'margin-top:0' }));
+    wrap.appendChild(inp);
+    var fs = h('fieldset', null, [h('legend', { text: 'Save to' })]);
+    [['both', 'File and browser'], ['file', 'File only'], ['browser', 'Browser only']].forEach(function (o) {
+      var r = h('input', { type: 'radio', name: 'tg-' + it.id, value: o[0] });
+      if (state.target === o[0]) r.checked = true;
+      r.addEventListener('change', function () { state.target = o[0]; });
+      fs.appendChild(h('label', { cls: 'rad' }, [r, o[1]]));
+    });
+    wrap.appendChild(fs);
+    if (state.editMsg) wrap.appendChild(h('p', { cls: 'status err', text: state.editMsg, role: 'alert' }));
+    wrap.appendChild(h('div', { cls: 'row-btns' }, [
+      h('button', { type: 'button', cls: 'btn primary sm', text: 'Save', onclick: function () { saveEdit(it.id); } }),
+      h('button', { type: 'button', cls: 'btn sm', text: state.showDraft ? 'Hide' : 'Show', onclick: function () { state.showDraft = !state.showDraft; state.focusEditor = true; render(); } }),
+      h('button', { type: 'button', cls: 'btn sm', text: 'Cancel', onclick: function () { state.editing = null; state.draft = ''; state.editMsg = ''; render(); } })
+    ]));
+    return wrap;
+  }
+
+  function valueBox(label, val, id, side) {
+    var shown = state.reveal[id];
+    var box = h('div', { cls: 'val' }, [
+      h('b', { text: label }),
+      h('span', { cls: 'vtxt' + (val ? '' : ' none'), text: val ? (shown ? val : mask(val)) : 'Not stored' })
+    ]);
+    if (val) {
+      var cb = h('button', { type: 'button', cls: 'btn sm', 'aria-label': 'Copy the ' + label.toLowerCase() + ' value for ' + nameOf(id), text: 'Copy' });
+      cb.addEventListener('click', function () {
+        copyText(val).then(function () { cb.textContent = 'Copied'; setTimeout(function () { cb.textContent = 'Copy'; }, 1400); },
+          function () { cb.textContent = 'Not copied'; setTimeout(function () { cb.textContent = 'Copy'; }, 1400); });
+      });
+      box.appendChild(cb);
+    }
+    return box;
+  }
+
+  function buildRow(it) {
+    var id = it.id, isDef = id === 'default';
+    var cover = defaultCover();
+    var note = null;
+    if (it.s === 'missing') {
+      if (isDef) note = 'No default key. Apps without their own key will ask for one.';
+      else if (cover === 'browser') note = 'Covered by the default key in this browser.';
+      else if (cover === 'file') note = 'The default key is only in the file, so this browser would still ask.';
+      else note = 'No default key either, so this app will ask for a key.';
+    }
+    var det = h('details', { cls: 'row', 'data-id': id });
+    if (state.open[id]) det.setAttribute('open', '');
+    det.addEventListener('toggle', function () {
+      if (det.open) state.open[id] = true;
+      else { delete state.open[id]; if (state.reveal[id]) { delete state.reveal[id]; render(); } }
+    });
+    var sum = h('summary', null, [
+      h('span', { cls: 'rn', text: isDef ? 'ALL' : id }),
+      h('span', { cls: 'rname', text: nameOf(id) }),
+      h('span', { cls: 'chip c-' + it.s, text: STATUS_LABEL[it.s] }),
+      h('span', { cls: 'rsub' }, [
+        h('span', { text: 'File ' + mask(it.f) }),
+        h('span', { text: 'Browser ' + mask(it.b) }),
+        note ? h('span', { cls: 'note', text: note }) : null
+      ])
+    ]);
+    det.appendChild(sum);
+
+    var body = h('div', { cls: 'rbody' });
+    var vals = h('div', { cls: 'vals' }, [valueBox('File', it.f, id, 'file'), valueBox('Browser', it.b, id, 'browser')]);
+    body.appendChild(vals);
+
+    var acts = h('div', { cls: 'acts' });
+    if (it.f || it.b) {
+      acts.appendChild(h('button', {
+        type: 'button', cls: 'btn sm', 'aria-pressed': state.reveal[id] ? 'true' : 'false',
+        text: state.reveal[id] ? 'Hide keys' : 'Reveal keys',
+        onclick: function () { if (state.reveal[id]) delete state.reveal[id]; else state.reveal[id] = true; render(); }
+      }));
+    }
+    acts.appendChild(actionBtn(it.f || it.b ? 'Replace' : 'Add', function () { startEdit(id); }));
+    if (it.f && it.f !== it.b) acts.appendChild(actionBtn('Copy file to browser', function () {
+      if (copyFileToBrowser(id)) { say('Copied ' + nameOf(id) + ' from the file to this browser.', 'ok'); render(); }
+    }));
+    if (it.b && it.b !== it.f) acts.appendChild(actionBtn('Copy browser to file', function () {
+      if (copyBrowserToFile(id)) { say('Copied ' + nameOf(id) + ' from this browser to the file copy. Download to keep the change.', 'ok'); render(); }
+    }));
+    if (it.f) {
+      var tf = 'delF:' + id;
+      acts.appendChild(actionBtn(isArmed(tf) ? 'Tap again to delete' : 'Delete from file', function () { armOrRun(tf, function () { deleteFromFile(id); }); }, isArmed(tf) ? 'danger confirm' : 'danger'));
+    }
+    if (it.b) {
+      var tb = 'delB:' + id;
+      acts.appendChild(actionBtn(isArmed(tb) ? 'Tap again to delete' : 'Delete from browser', function () { armOrRun(tb, function () { deleteFromBrowser(id); }); }, isArmed(tb) ? 'danger confirm' : 'danger'));
+    }
+    if (it.f) acts.appendChild(actionBtn('Test file key', function () { testKey(id, 'file'); }));
+    if (it.b) acts.appendChild(actionBtn('Test browser key', function () { testKey(id, 'browser'); }));
+    body.appendChild(acts);
+
+    if (state.editing === id) body.appendChild(buildEditor(it));
+
+    var res = state.results[id];
+    if (res) {
+      var tests = h('div', { cls: 'tests', 'aria-live': 'polite' });
+      ['file', 'browser'].forEach(function (side) {
+        var r = res[side];
+        if (!r) return;
+        tests.appendChild(h('div', { cls: 'tline ' + (RES_CLASS[r.state] || '') }, [
+          h('strong', { text: (side === 'file' ? 'File key' : 'Browser key') + ': ' + RES_LABEL[r.state] }),
+          r.text ? h('span', { text: r.text }) : null
+        ]));
+      });
+      body.appendChild(tests);
+    }
+    det.appendChild(body);
+    return det;
+  }
+
+  function render() {
+    if (!state.ring) { renderSummary(); return; }
+    var ids = rowIds();
+    var items = ids.map(makeItem);
+    var counts = { all: items.length, match: 0, mismatch: 0, file: 0, browser: 0, missing: 0 };
+    items.forEach(function (i) { counts[i.s]++; });
+
+    var chips = $('chips');
+    chips.textContent = '';
+    [['all', 'All'], ['match', 'Match'], ['mismatch', 'Mismatch'], ['file', 'Only in file'], ['browser', 'Only in browser'], ['missing', 'Missing']].forEach(function (c) {
+      chips.appendChild(h('button', {
+        type: 'button', cls: 'fchip', 'aria-pressed': state.filter === c[0] ? 'true' : 'false',
+        text: c[1] + ' ' + counts[c[0]],
+        onclick: function () { state.filter = c[0]; render(); }
+      }));
+    });
+
+    var toB = bulkTargets('toBrowser').length, toF = bulkTargets('toFile').length;
+    var bb = $('bulkToBrowser'), bf = $('bulkToFile');
+    bb.textContent = isArmed('bulkB') ? 'Tap again to copy ' + toB : 'Copy all file keys to browser (' + toB + ')';
+    bf.textContent = isArmed('bulkF') ? 'Tap again to copy ' + toF : 'Copy all browser keys to file (' + toF + ')';
+    bb.disabled = !toB; bf.disabled = !toF;
+    bb.className = 'btn sm' + (isArmed('bulkB') ? ' confirm' : '');
+    bf.className = 'btn sm' + (isArmed('bulkF') ? ' confirm' : '');
+
+    var def = $('defRow');
+    def.textContent = '';
+    def.appendChild(buildRow(makeItem('default')));
+
+    var rows = $('rows');
+    rows.textContent = '';
+    var shown = items.filter(function (i) { return state.filter === 'all' || i.s === state.filter; });
+    $('appsHead').textContent = 'AI apps (' + shown.length + ' shown)';
+    if (!shown.length) rows.appendChild(h('div', { cls: 'empty', text: 'No apps with that status.' }));
+    shown.forEach(function (i) { rows.appendChild(buildRow(i)); });
+
+    $('dirtyTag').hidden = !state.dirty;
+    if (state.focusEditor && state.editing) {
+      state.focusEditor = false;
+      var el = $('ev-' + state.editing);
+      if (el) { el.focus(); }
+    }
+  }
+
+  function renderSummary() {
+    var be = browserEntries();
+    var n = Object.keys(be.apps).length;
+    $('browserSummary').textContent = 'This browser holds ' + (be.default ? 'a default key and ' : 'no default key and ') + n + (n === 1 ? ' app key.' : ' app keys.');
+  }
+
+  /* ---------- unlock, lock, download ---------- */
+  function setBusy(btn, labelEl, on, text) {
+    btn.disabled = on;
+    btn.classList.toggle('busy', on);
+    if (text) labelEl.textContent = text;
+  }
+  function ustatus(text, kind) {
+    var el = $('unlockStatus');
+    el.textContent = text || '';
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+  function dstatus(text, kind) {
+    var el = $('dlStatus');
+    el.textContent = text || '';
+    el.className = 'status' + (kind ? ' ' + kind : '');
+  }
+
+  function showWorkspace(on) {
+    $('workspace').hidden = !on;
+    $('unlockCard').hidden = on;
+  }
+
+  function unlock() {
+    var f = $('bf').files && $('bf').files[0];
+    var pass = $('pp').value;
+    if (!f) { ustatus('Choose your backup file first.', 'err'); return; }
+    if (!pass) { ustatus('Enter the passphrase for that file.', 'err'); return; }
+    if (!(window.crypto && crypto.subtle)) { ustatus('This browser cannot decrypt here because Web Crypto is unavailable. Open the page over https.', 'err'); return; }
+    if (f.size > 1000000) { ustatus('That does not look like an AppADay key file. Choose appaday-keys.json.', 'err'); return; }
+    var btn = $('unlockBtn');
+    setBusy(btn, $('unlockLabel'), true, 'Opening');
+    ustatus('');
+    readText(f).then(function (text) { return openRing(text, pass); }).then(function (ring) {
+      state.ring = ring; state.pass = pass; state.dirty = false; state.filter = 'all';
+      state.open = {}; state.reveal = {}; state.results = {}; state.editing = null; state.pending = null;
+      $('pp').value = '';
+      say('');
+      dstatus('');
+      showWorkspace(true);
+      render();
+      var n = Object.keys(ring.apps).length + (ring.default ? 1 : 0);
+      say('Opened the file. It holds ' + n + (n === 1 ? ' key.' : ' keys.'), 'ok');
+    }).catch(function (e) {
+      if (e && e.code === 'format') ustatus('That does not look like an AppADay key file. Choose the appaday-keys.json made by the key ring.', 'err');
+      else ustatus('That passphrase did not open the file. Check it and try again. Passphrases are case sensitive.', 'err');
+    }).then(function () { setBusy(btn, $('unlockLabel'), false, 'Open and compare'); });
+  }
+
+  function startFresh() {
+    state.ring = { default: null, apps: {} }; state.pass = null; state.dirty = false; state.filter = 'all';
+    state.open = {}; state.reveal = {}; state.results = {}; state.editing = null; state.pending = null;
+    showWorkspace(true);
+    render();
+    say('Started an empty file copy. Use the copy buttons to bring in this browser\'s keys, then download with a new passphrase.', 'ok');
+    dstatus('');
+  }
+
+  function wipe(message) {
+    state.ring = null; state.pass = null; state.pending = null; state.dirty = false;
+    state.open = {}; state.reveal = {}; state.results = {}; state.editing = null; state.draft = ''; state.confirm = null;
+    $('np').value = ''; $('np2').value = ''; $('npConfirmWrap').hidden = true; $('pp').value = ''; $('bf').value = '';
+    $('dlLabel').textContent = 'Download updated backup';
+    showWorkspace(false);
+    renderSummary();
+    ustatus(message || '', message ? 'ok' : '');
+  }
+
+  function anchorDownload(blob) {
+    var url = URL.createObjectURL(blob);
+    var a = h('a', { href: url, download: FILE_NAME, style: 'display:none' });
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function () { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1500);
+  }
+  function afterSave() {
+    lsSet(K_FILE, '1');
+    wipe('Backup saved as ' + FILE_NAME + '. Replace your older copy with it. The passphrase and decrypted keys were cleared from this page.');
+  }
+  function deliver() {
+    var p = state.pending;
+    if (!p) return;
+    var file = null;
+    try { file = new File([p.blob], FILE_NAME, { type: 'application/json' }); } catch (e) { file = null; }
+    if (MOBILE && file && navigator.canShare && navigator.share && navigator.canShare({ files: [file] })) {
+      navigator.share({ files: [file], title: 'AppADay key file' }).then(afterSave, function (e) {
+        if (e && e.name === 'AbortError') { dstatus('Saving was cancelled. Tap the button to try again.', 'err'); return; }
+        anchorDownload(p.blob); afterSave();
+      });
+      return;
+    }
+    anchorDownload(p.blob);
+    afterSave();
+  }
+
+  function prepareDownload() {
+    if (state.pending) { deliver(); return; }
+    var np = $('np').value, np2 = $('np2').value, pass = state.pass;
+    if (np) {
+      if (normPass(np).length < 12) { dstatus('A new passphrase needs at least 12 characters.', 'err'); return; }
+      if (np !== np2) { dstatus('The two passphrases do not match.', 'err'); $('npConfirmWrap').hidden = false; return; }
+      pass = np;
+    } else if (!pass) {
+      $('npConfirmWrap').hidden = false;
+      dstatus('Type a passphrase of at least 12 characters to protect the new file.', 'err');
+      return;
+    }
+    var count = Object.keys(state.ring.apps).length + (state.ring.default ? 1 : 0);
+    if (!count) { dstatus('The file copy has no keys yet. Add or copy some first.', 'err'); return; }
+    var btn = $('dlBtn');
+    setBusy(btn, $('dlLabel'), true, 'Encrypting');
+    dstatus('');
+    sealRing(state.ring, pass).then(function (text) {
+      var blob = new Blob([text], { type: 'application/json' });
+      state.pending = { blob: blob };
+      setBusy(btn, $('dlLabel'), false, MOBILE ? 'Save to Files or Drive' : 'Download updated backup');
+      if (MOBILE) { dstatus('Encrypted. Tap the button once more to save the file.', 'ok'); }
+      else { deliver(); }
+    }).catch(function () {
+      setBusy(btn, $('dlLabel'), false, 'Download updated backup');
+      dstatus('Encryption failed in this browser. Try again, or use a different browser.', 'err');
+    });
+  }
+
+  /* ---------- wiring ---------- */
+  function init() {
+    $('unlockBtn').addEventListener('click', unlock);
+    $('pp').addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); unlock(); } });
+    $('freshBtn').addEventListener('click', startFresh);
+    $('lockBtn').addEventListener('click', function () { wipe('Locked. The passphrase and decrypted keys were cleared from this page.'); });
+    $('dlBtn').addEventListener('click', prepareDownload);
+    $('np').addEventListener('input', function () {
+      $('npConfirmWrap').hidden = !$('np').value && !!state.pass;
+      state.pending = null; $('dlLabel').textContent = 'Download updated backup';
+    });
+    $('np2').addEventListener('input', function () { state.pending = null; $('dlLabel').textContent = 'Download updated backup'; });
+    $('bulkToBrowser').addEventListener('click', function () { armOrRun('bulkB', function () { runBulk('toBrowser'); }); });
+    $('bulkToFile').addEventListener('click', function () { armOrRun('bulkF', function () { runBulk('toFile'); }); });
+    window.addEventListener('storage', function (e) { if (!e || e.key == null || /^appaday\.key\./.test(e.key)) render(); });
+    window.addEventListener('beforeunload', function (e) { if (state.ring && state.dirty) { e.preventDefault(); e.returnValue = ''; } });
+    $('npConfirmWrap').hidden = true;
+    renderSummary();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init); else init();
+})();
+</script>
+</body>
+</html>
